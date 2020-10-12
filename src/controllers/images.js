@@ -4,9 +4,10 @@ const { randomNumber } = require('../helpers/libs');
 const fs = require('fs-extra');
 const md5 =  require('md5');
 const { Image, Comment } = require('../models');
+const sidebar = require('../helpers/sidebar');
 
 ctrl.index = async (req, res) => {
-    const viewModel = { image: {}, comments: {} };
+    let viewModel = { image: {}, comments: {} };
 
 
    const image = await Image.findOne({filename: {$regex: req.params.image_id}});
@@ -16,6 +17,7 @@ ctrl.index = async (req, res) => {
        await image.save();
        const comments = await Comment.find({image_id: image._id});
        viewModel.comments = comments;
+       viewModel = await sidebar(viewModel);
         res.render('image', viewModel);
     }
     else{
@@ -82,6 +84,7 @@ ctrl.comment = async (req, res) => {
         newComment.gravatar = md5(newComment.email);
         newComment.image_id = image._id;
         await newComment.save();
+        console.log(newComment.name);
         res.redirect('/images/' + image.uniqueId );
     }
     else{
@@ -93,7 +96,8 @@ ctrl.comment = async (req, res) => {
 ctrl.remove = async (req, res) => {
     const image = await Image.findOne({filename: {$regex: req.params.image_id}});
     if (image) {
-         fs.unlink(path.resolve('./src/public/upload/' + image.filename));
+        //unlink remueve un dato a partir de una direccion que yo le de
+         fs.unlink(path.resolve('/Users/Spinxs/Desktop/MEVN/src/public/upload/' + image.filename));
          await console.log('EXISTE LA IMAGEN');
          await Comment.deleteMany({image_id: image._id});
          await image.remove();
